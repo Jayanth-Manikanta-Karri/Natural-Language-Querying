@@ -21,5 +21,3 @@ def process_query(file_path, query):
     generated_text = response.text
 
     return generated_text
-
-# print(process_query("uploads/Jayanth Manikanta Karri - internship offer.pdf", "What is the name of the person"))
