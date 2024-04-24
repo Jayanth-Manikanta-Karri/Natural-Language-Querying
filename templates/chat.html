@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Interface</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .chat-container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .chat-messages {
+            padding: 20px;
+            overflow-y: auto;
+            height: 300px;
+        }
+        .message {
+            margin-bottom: 10px;
+        }
+        .user-message {
+            text-align: right;
+            color: #333;
+        }
+        .bot-message {
+            text-align: left;
+            color: #333;
+        }
+        .input-container {
+            padding: 10px;
+            background-color: #f9f9f9;
+        }
+        .input-container input[type="text"] {
+            width: calc(100% - 60px);
+            padding: 8px;
+            margin-right: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .input-container input[type="submit"] {
+            background-color: #4CAF50;
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .input-container input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-messages" id="chat-messages">
+            <!-- Previous chat messages will be displayed here -->
+        </div>
+        <div class="input-container">
+            <form id="chat-form" method="post">
+                <input type="text" id="user-input" name="query" placeholder="Type your message...">
+                <input type="submit" value="Send">
+            </form>            
+        </div>
+    </div>
+
+    <script>
+        // Function to add a user message to the chat interface
+        function addUserMessage(message) {
+            var chatMessages = document.getElementById('chat-messages');
+            var userMessageDiv = document.createElement('div');
+            userMessageDiv.className = 'message user-message';
+            userMessageDiv.textContent = message;
+            chatMessages.appendChild(userMessageDiv);
+        }
+
+        // Function to add a bot message to the chat interface
+        function addBotMessage(message) {
+            var chatMessages = document.getElementById('chat-messages');
+            var botMessageDiv = document.createElement('div');
+            botMessageDiv.className = 'message bot-message';
+            botMessageDiv.textContent = message;
+            chatMessages.appendChild(botMessageDiv);
+        }
+
+        // Function to handle form submission (sending user message)
+        document.getElementById('chat-form').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent default form submission
+
+            var userInput = document.getElementById('user-input').value; // Get user input
+            addUserMessage(userInput); // Display user message in the chat interface
+
+            fetch('/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ query: userInput })
+            })
+            .then(response => response.json())
+            .then(({ file_path, response }) => {
+                addBotMessage(response);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+            
+            // Clear the input field after sending the message
+            document.getElementById('user-input').value = '';
+        });
+    </script>
+</body>
+</html>
