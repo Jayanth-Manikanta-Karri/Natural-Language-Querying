@@ -13,21 +13,25 @@ def upload_file():
 
 @app.route('/upload', methods=['POST'])
 def upload():
-    uploaded_file = request.files['file']
-    file_path = os.path.join(app.config['UPLOAD_FOLDER'], uploaded_file.filename)
-    uploaded_file.save(file_path)
-    session['file_path'] = file_path
-    return render_template('chat.html', file_path=file_path)
+    uploaded_files = request.files.getlist('files')
+    file_paths = []
+    
+    for file in uploaded_files:
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+        file.save(file_path)
+        file_paths.append(file_path)
+    
+    session['file_paths'] = file_paths
+    return render_template('chat.html', file_paths=file_paths)
 
 @app.route('/chat', methods=['GET', 'POST'])
 def chat():
-    file_path = session.get('file_path')  # Retrieve file path from session
+    file_paths = session.get('file_paths')  # Retrieve file paths from session
     if request.method == 'POST':
         query_text = request.get_json(force=True)['query']
-        # query_text = request.form['query']
-        response = process_query(file_path, query_text)
-        return jsonify({'file_path': file_path, 'response': response})
-    return render_template('chat.html', file_path=file_path)
+        response = process_query(file_paths, query_text)
+        return jsonify({'file_paths': file_paths, 'response': response})
+    return render_template('chat.html', file_paths=file_paths)
 
 if __name__ == '__main__':
     app.run(debug=True)

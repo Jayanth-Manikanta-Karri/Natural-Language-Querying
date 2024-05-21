@@ -1,23 +1,8 @@
-import PyPDF2
-import google.generativeai as genai
+from main import get_pdf_text, get_text_chunks, get_vector_store, user_input
 
-genai.configure(api_key="AIzaSyAaYnXPBxf5bWjIJ2V4E4sqYcM5XEj6wA0")
-model = genai.GenerativeModel(model_name='gemini-pro')
-
-def process_query(file_path, query):
-
-    with open(file_path, 'rb') as pdf_file:
-        reader = PyPDF2.PdfReader(pdf_file)
-        num_pages = len(reader.pages)
-
-        text = ''
-        for page_num in range(num_pages):
-            text += reader.pages[page_num].extract_text()
-
-    # Process the query
-    prompt = f"Query: {query}\nText: {text}\n"
-    response = model.generate_content(prompt)
-
-    generated_text = response.text
-
-    return generated_text
+def process_query(file_paths, query_text):
+    text = get_pdf_text(file_paths)
+    text_chunks = get_text_chunks(text)
+    vector_store = get_vector_store(text_chunks)
+    response = user_input(query_text)
+    return response

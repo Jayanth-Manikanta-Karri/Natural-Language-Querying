@@ -1,3 +1,8 @@
 Flask
 PyPDF2
-google-generativeai
+python-dotenv
+langchain
+chromadb
+faiss-cpu
+langchain-fireworks
+langchain-community
