@@ -22,16 +22,18 @@ def upload():
         file_paths.append(file_path)
     
     session['file_paths'] = file_paths
-    return render_template('chat.html', file_paths=file_paths)
+    return jsonify({'file_paths': file_paths})
 
 @app.route('/chat', methods=['GET', 'POST'])
 def chat():
-    file_paths = session.get('file_paths')  # Retrieve file paths from session
+    file_paths = session.get('file_paths', [])  # Retrieve file paths from session
     if request.method == 'POST':
         query_text = request.get_json(force=True)['query']
         response = process_query(file_paths, query_text)
-        return jsonify({'file_paths': file_paths, 'response': response})
-    return render_template('chat.html', file_paths=file_paths)
+        return jsonify({'response': response})
+    return render_template('chat.html')
 
 if __name__ == '__main__':
+    if not os.path.exists(UPLOAD_FOLDER):
+        os.makedirs(UPLOAD_FOLDER)
     app.run(debug=True)

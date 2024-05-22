@@ -105,7 +105,7 @@
                 body: JSON.stringify({ query: userInput })
             })
             .then(response => response.json())
-            .then(({ file_path, response }) => {
+            .then(({ response }) => {
                 addBotMessage(response);
             })
             .catch(error => {
@@ -118,4 +118,3 @@
     </script>
 </body>
 </html>
-

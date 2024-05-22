@@ -23,50 +23,123 @@
             text-align: center;
             color: #333;
         }
-        form {
+        .upload-area {
+            border: 2px dashed #ccc;
+            padding: 20px;
             text-align: center;
-            margin-top: 20px;
-        }
-        input[type="file"] {
-            display: none;
-        }
-        .custom-file-upload {
-            border: 2px solid #ccc;
-            display: inline-block;
-            padding: 8px 12px;
             cursor: pointer;
-            border-radius: 4px;
-            background-color: #f9f9f9;
-            color: #333;
         }
-        .custom-file-upload:hover {
-            background-color: #e9e9e9;
+        .upload-area.hover {
+            background-color: #f0f0f0;
         }
-        .submit-btn {
+        .upload-progress {
             margin-top: 20px;
+        }
+        .progress-bar {
+            width: 100%;
+            background-color: #f3f3f3;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .progress-bar-inner {
+            height: 20px;
             background-color: #4CAF50;
-            color: #fff;
-            border: none;
-            padding: 10px 20px;
-            cursor: pointer;
-            border-radius: 4px;
-            font-size: 16px;
-        }
-        .submit-btn:hover {
-            background-color: #45a049;
+            width: 0;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h2>Upload Files</h2>
-        <form action="/upload" method="post" enctype="multipart/form-data">
-            <label for="file-upload" class="custom-file-upload">
-                Select Files
-            </label>
-            <input id="file-upload" type="file" name="files" multiple>
-            <input type="submit" value="Upload" class="submit-btn">
+        <div class="upload-area" id="upload-area">
+            Drag and drop files here or click to select files
+        </div>
+        <form id="file-upload-form" action="/upload" method="post" enctype="multipart/form-data" style="display: none;">
+            <input id="file-upload-input" type="file" name="files" multiple>
+            <input type="submit" value="Upload">
         </form>
+        <div class="upload-progress" id="upload-progress"></div>
     </div>
+
+    <script>
+        var uploadArea = document.getElementById('upload-area');
+        var fileUploadInput = document.getElementById('file-upload-input');
+        var fileUploadForm = document.getElementById('file-upload-form');
+        var uploadProgress = document.getElementById('upload-progress');
+
+        uploadArea.addEventListener('click', function() {
+            fileUploadInput.click();
+        });
+
+        uploadArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            uploadArea.classList.add('hover');
+        });
+
+        uploadArea.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            uploadArea.classList.remove('hover');
+        });
+
+        uploadArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            uploadArea.classList.remove('hover');
+            var files = e.dataTransfer.files;
+            handleFiles(files);
+        });
+
+        fileUploadInput.addEventListener('change', function() {
+            var files = fileUploadInput.files;
+            handleFiles(files);
+        });
+
+        function handleFiles(files) {
+            uploadProgress.innerHTML = '';
+            var formData = new FormData(fileUploadForm);
+            for (var i = 0; i < files.length; i++) {
+                formData.append('files', files[i]);
+                var progressBar = createProgressBar(files[i]);
+                uploadProgress.appendChild(progressBar.container);
+                uploadFile(files[i], progressBar);
+            }
+        }
+
+        function createProgressBar(file) {
+            var container = document.createElement('div');
+            container.className = 'progress-container';
+            var label = document.createElement('div');
+            label.textContent = file.name + ' • 0%';
+            var progressBar = document.createElement('div');
+            progressBar.className = 'progress-bar';
+            var progressBarInner = document.createElement('div');
+            progressBarInner.className = 'progress-bar-inner';
+            progressBar.appendChild(progressBarInner);
+            container.appendChild(label);
+            container.appendChild(progressBar);
+            return { container, label, progressBarInner };
+        }
+
+        function uploadFile(file, progressBar) {
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/upload', true);
+            xhr.upload.addEventListener('progress', function(e) {
+                if (e.lengthComputable) {
+                    var percentComplete = (e.loaded / e.total) * 100;
+                    progressBar.label.textContent = file.name + ' • ' + Math.round(percentComplete) + '%';
+                    progressBar.progressBarInner.style.width = percentComplete + '%';
+                }
+            });
+            xhr.addEventListener('load', function() {
+                progressBar.label.textContent = file.name + ' • Uploaded';
+                progressBar.progressBarInner.style.width = '100%';
+            });
+            var formData = new FormData();
+            formData.append('files', file);
+            xhr.send(formData);
+        }
+    </script>
 </body>
 </html>
